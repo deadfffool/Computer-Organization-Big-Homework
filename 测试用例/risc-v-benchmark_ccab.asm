@@ -289,36 +289,109 @@ sort_next:
  bne s0, s1, sort_loop
 
 
- #addi   a7,zero,50         # system call for pause
- #ecall                  # we are out of here.   
- 
- 
-#############################################
+ addi   a7,zero,10         # system call for pause
+ ecall                  # we are out of here.   
+
+ #############################################
 # insert your ccmb benchmark program here!!!
 #############################################
 
 #j benchmark_start       #delete this instruction for ccmb bencmark
 #C1 instruction benchmark
+addi t0,zero,1     #sllv 移位次数
+addi t1,zero,3     #sllv 移位次数
+addi s1,zero,  0x8
+slli s1,s1,8
+addi s1,s1,0x76     
 
+slli s1,s1,20     #
 
+add a0,zero,s1           
+addi a7,zero,34         # system call for print
+ecall                  # print
 
+addi t3,zero,8
+
+srl_branch:
+srl s1,s1,t0     #先移1位
+srl s1,s1,t1     #再移3位
+add a0,zero,s1          
+addi a7,zero,34         # system call for print
+ecall                  # print
+addi t3,t3, -1    
+bne t3,zero,srl_branch   #循环8次
+
+addi   a7,zero,10         # system call for exit
+ecall                  # we are out of here.    
 #C2 instruction benchmark
+addi t3,zero,   0x8
 
+lui_branch:
+lui s1,   0xFEDC0 
+addi s0,zero, -1
+srli  s0,s0,16
+or s1,s1,s0
 
+add a0,zero,s1          
+addi a7,zero,34         # system call for print
+ecall    
+lui s1,   0xBA98
+add a0,zero,s1          
+ecall    
+lui s1,   0x7654     
+add a0,zero,s1          
+ecall    
+lui s1,   0x3210     
+add a0,zero,s1          
+ecall    
+                           # print
+addi t3,t3, -1    
+bne t3,zero,lui_branch
 
+addi   a7,zero,10         # system call for exit
+ecall                     # we are out of here.  
 #Mem instruction benchmark
+addi t1,zero,0     #init_addr 
+addi t3,zero,32     #counter
 
+#sb写入 01,02,03,04
+addi s1,zero, 0x00  #
+addi s2,zero, 0x01  #
 
+sb_store:
+sb s1,(t1)
+add a0,zero,s1          
+addi a7,zero,34        # system call for print
+ecall                  # print
 
+add s1,s1,s2          #data +1
+addi t1,t1,1           # addr ++  
+addi t3,t3,-1          #counter
+bne t3,zero,sb_store
 
+addi t3,zero,8
+addi t1,zero,0    # addr   
+sb_branch:
+lw s1,(t1)       #读出数据 
+add a0,zero,s1          
+addi a7,zero,34        # system call for print
+ecall                  # print
+addi t1,t1,4    
+addi t3,t3, -1    
+bne t3,zero,sb_branch
+
+addi   a7,zero,10      # system call for exit
+ecall                  # we are out of here
 #Branch instruction benchmark
-
-
-                 
- addi   a7,zero,10         # system call for exit
- ecall                  # we are out of here.   
- 
- #处理器实现中请用停机指令实现ecall
+addi s1,zero,-15       #初始值
+blt_branch:
+add a0,zero,s1          
+addi a7,zero,34         
+ecall                  #输出当前值
+addi s1,s1,1 
+blt s1,zero,blt_branch     #当前指令
+addi   a7,zero,10    
+ecall                  #暂停或退出
 
 jmp_count: addi s0,zero, 0
        addi s0,s0, 1
@@ -363,3 +436,5 @@ jmp_count: addi s0,zero, 0
        ecall                 # we are out of here.  
        
        ret  #persudo instruction  jalr x0,x1,0
+       
+
